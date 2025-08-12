@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mirrorly</title>
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+    /* Loading screen styles */
+    #loading-screen {
+        position: fixed;
+        inset: 0;
+        background-color: #000;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+        transition: opacity 0.5s ease;
+    }
+
+    #loading-text {
+        color: white;
+        font-family: 'Inter', sans-serif;
+        font-weight: 700;
+        font-size: 36px; /* Smaller font size */
+        display: flex;
+        align-items: center;
+        gap: 8px; /* Close gap */
+        opacity: 1;
+        transform: translateY(0);
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        user-select: none;
+    }
+
+    #loading-icon {
+        width: 72px; /* Bigger logo */
+        height: auto;
+        display: block;
+    }
+
+    .spinner {
+        margin-top: 16px;
+        width: 40px;
+        height: 40px;
+        border: 4px solid rgba(255, 255, 255, 0.2);
+        border-top-color: white;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+
+    /* Rest of your styles... */
+    body {
+        margin: 0;
+        font-family: 'Inter', sans-serif;
+        background-color: #0c0c0c;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+    }
+
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 2rem;
+    }
+
+    .logo {
+        font-weight: 700;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .logo img {
+        width: 56px;
+        height: auto;
+        display: block;
+    }
+
+    nav a {
+        color: white;
+        text-decoration: none;
+        margin-left: 2rem;
+        font-size: 0.95rem;
+        opacity: 0.85;
+    }
+
+    nav a:hover {
+        opacity: 1;
+    }
+
+    .signup-btn {
+        background: white;
+        color: black;
+        padding: 0.4rem 1rem;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    main {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+    }
+
+    h1 {
+        font-size: 4.5rem;
+        font-weight: 700;
+        margin: 0.5rem 0;
+    }
+
+    p.subtitle {
+        font-size: 1.4rem;
+        color: #e0e0e0;
+        margin-bottom: 2.5rem;
+    }
+
+    /* Search bar container */
+    .search-bar {
+        background-color: #1e1e1e;
+        border-radius: 18px;
+        width: 600px;
+        max-width: 95%;
+        display: flex;
+        align-items: center;
+        padding: 0.5rem;
+    }
+
+    /* File icon container */
+    .file-icon-container {
+        position: relative;
+        margin-right: 0.5rem;
+    }
+
+    /* File icon */
+    .file-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: transparent;
+        border: 1.5px solid #444;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        font-size: 0;
+        padding: 0;
+    }
+
+    .file-icon:hover {
+        background: #2a2a2a;
+    }
+
+    /* Attach dropdown */
+    .attach-dropdown {
+        position: absolute;
+        top: 140%;
+        left: 0;
+        background: #222;
+        border-radius: 6px;
+        overflow: hidden;
+        z-index: 10;
+        max-height: 0;
+        opacity: 0;
+        transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+        white-space: nowrap;
+    }
+
+    .attach-dropdown.open {
+        max-height: 200px;
+        opacity: 1;
+    }
+
+    .attach-dropdown div {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+    }
+
+    .attach-dropdown div:hover {
+        background: #333;
+    }
+
+    /* Input box */
+    .search-input {
+        flex: 1;
+        background: transparent;
+        border: none;
+        color: white;
+        font-size: 0.95rem;
+        padding: 0.5rem 0.4rem;
+        outline: none;
+        resize: none;
+        height: 24px;
+        min-height: 24px;
+        max-height: 150px;
+        overflow-y: auto;
+        line-height: 1.5;
+    }
+
+    .right-section {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    /* Model select */
+    .model-select {
+        position: relative;
+        font-size: 0.95rem;
+        cursor: pointer;
+        user-select: none;
+    }
+
+    .model-name {
+        display: inline-block;
+        transition: opacity 0.3s ease;
+    }
+
+    .model-name.changing {
+        opacity: 0;
+    }
+
+    .model-tooltip {
+        visibility: hidden;
+        opacity: 0;
+        background: #333;
+        color: white;
+        font-size: 0.8rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        position: absolute;
+        bottom: 130%;
+        left: 50%;
+        transform: translateX(-50%);
+        transition: opacity 0.2s ease;
+        white-space: nowrap;
+        pointer-events: none;
+    }
+
+    .model-select:hover .model-tooltip {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .model-dropdown {
+        position: absolute;
+        top: 140%;
+        left: 0;
+        background: #222;
+        border-radius: 6px;
+        overflow: hidden;
+        z-index: 10;
+        max-height: 0;
+        opacity: 0;
+        transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+        white-space: nowrap;
+    }
+
+    .model-dropdown.open {
+        max-height: 200px;
+        opacity: 1;
+    }
+
+    .model-dropdown div {
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+    }
+
+    .model-dropdown div:hover {
+        background: #333;
+    }
+
+    /* Enter button - white circle with black arrow */
+    .enter-btn {
+        background: white;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+    }
+
+    .enter-btn svg {
+        width: 16px;
+        height: 16px;
+        stroke: black;
+        stroke-width: 2;
+        fill: none;
+    }
+</style>
+</head>
+<body>
+
+<!-- Loading screen -->
+<div id="loading-screen">
+    <div id="loading-text">
+        <img id="loading-icon" src="https://raw.githubusercontent.com/Klez-src/website./refs/heads/main/output-onlinepngtools%20(3).png" alt="Mirrorly Logo" />
+        mirrorly.dev
+    </div>
+    <div class="spinner" aria-label="Loading"></div>
+</div>
+
+<header>
+    <div class="logo">
+        <img src="https://raw.githubusercontent.com/Klez-src/website./refs/heads/main/output-onlinepngtools%20(3).png" alt="Mirrorly Logo" />
+        mirrorly
+    </div>
+    <nav>
+        <a href="#">Pricing</a>
+        <a href="#">Docs</a>
+        <a href="#">Log in</a>
+        <a href="#" class="signup-btn">Sign up</a>
+    </nav>
+</header>
+
+<main>
+    <h1>Make anything</h1>
+    <p class="subtitle">Copy any website by prompting. Entirely for free!</p>
+
+    <div class="search-bar">
+        <div class="file-icon-container">
+            <div class="file-icon" title="Attach file" aria-label="Attach file" role="button" tabindex="0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </div>
+            <div class="attach-dropdown">
+                <div>Add from computer</div>
+                <div>Add from clipboard</div>
+                <div>Add from URL</div>
+                <div>Add from camera</div>
+            </div>
+        </div>
+        <textarea class="search-input" placeholder="Type your prompt here..."></textarea>
+        <div class="right-section">
+            <div class="model-select" tabindex="0" aria-haspopup="listbox" aria-expanded="false">
+                <span class="model-name">claude-4-sonnet</span>
+                <div class="model-tooltip">switch ai model</div>
+                <div class="model-dropdown" role="listbox" tabindex="-1">
+                    <div role="option" tabindex="0">claude-4-sonnet</div>
+                    <div role="option" tabindex="0">gpt-4</div>
+                    <div role="option" tabindex="0">gpt-3.5</div>
+                    <div role="option" tabindex="0">mixtral-8x7b</div>
+                </div>
+            </div>
+            <div class="enter-btn" title="Run">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                    <line x1="12" y1="19" x2="12" y2="5"></line>
+                    <polyline points="5 12 12 5 19 12"></polyline>
+                </svg>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script>
+    // Loading screen fade out and slide up animation
+    window.addEventListener('load', () => {
+        const loadingScreen = document.getElementById('loading-screen');
+        const loadingText = document.getElementById('loading-text');
+        setTimeout(() => {
+            loadingText.style.opacity = '0';
+            loadingText.style.transform = 'translateY(50px)';
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.style.display = 'none';
+            }, 500);
+        }, 700);
+    });
+
+    const modelSelect = document.querySelector('.model-select');
+    const modelDropdown = modelSelect.querySelector('.model-dropdown');
+    const modelNameSpan = modelSelect.querySelector('.model-name');
+
+    function closeDropdown() {
+        modelDropdown.classList.remove('open');
+        modelSelect.setAttribute('aria-expanded', 'false');
+    }
+
+    function openDropdown() {
+        modelDropdown.classList.add('open');
+        modelSelect.setAttribute('aria-expanded', 'true');
+    }
+
+    // Toggle dropdown on click
+    modelSelect.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (modelDropdown.classList.contains('open')) {
+            closeDropdown();
+        } else {
+            openDropdown();
+        }
+    });
+
+    // Selecting an option closes dropdown and changes name with fade effect
+    modelDropdown.querySelectorAll('div').forEach(option => {
+        option.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const selectedModel = option.textContent;
+            if (modelNameSpan.textContent !== selectedModel) {
+                closeDropdown();
+                modelNameSpan.classList.add('changing');
+                setTimeout(() => {
+                    modelNameSpan.textContent = selectedModel;
+                    modelNameSpan.classList.remove('changing');
+                }, 200);
+            } else {
+                closeDropdown();
+            }
+        });
+    });
+
+    // Close dropdown if clicked outside
+    document.addEventListener('click', (e) => {
+        if (!modelSelect.contains(e.target)) {
+            closeDropdown();
+        }
+    });
+
+    // File icon attach dropdown
+    const fileIcon = document.querySelector('.file-icon');
+    const attachDropdown = document.querySelector('.attach-dropdown');
+
+    fileIcon.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isOpen = attachDropdown.classList.contains('open');
+        attachDropdown.classList.toggle('open', !isOpen);
+    });
+
+    attachDropdown.querySelectorAll('div').forEach(option => {
+        option.addEventListener('click', () => {
+            // Placeholder for attach functionality
+            attachDropdown.classList.remove('open');
+        });
+    });
+
+    document.addEventListener('click', (e) => {
+        if (!fileIcon.contains(e.target)) {
+            attachDropdown.classList.remove('open');
+        }
+    });
+
+    // Textarea auto-resize
+    const textarea = document.querySelector('.search-input');
+    textarea.addEventListener('input', () => {
+        textarea.style.height = '24px';
+        if (textarea.scrollHeight > textarea.clientHeight) {
+            textarea.style.height = `${textarea.scrollHeight}px`;
+        }
+    });
+    textarea.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            if (!e.shiftKey) {
+                e.preventDefault();
+            } else {
+                textarea.value += '\n';
+                textarea.style.height = '24px';
+                if (textarea.scrollHeight > textarea.clientHeight) {
+                    textarea.style.height = `${textarea.scrollHeight}px`;
+                }
+            }
+        }
+    });
+</script>
+
+</body>
+</html>
